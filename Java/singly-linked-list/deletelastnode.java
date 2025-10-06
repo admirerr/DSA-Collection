@@ -14,7 +14,7 @@ class Node {
     }
 }
 // LinkedList class
-public class deletelastnode {
+public class DeleteLastNode {
     // Function to delete the tail of the linked list
     private static Node deleteTail(Node head) {
         // Check if the linked list is empty or has only one node

@@ -18,7 +18,7 @@ class Node {
     }
 }
 
-public class insertathead {
+public class InsertAtHead {
     // Function to print the linked list
     public static void printLL(Node head) {
         while (head != null) {

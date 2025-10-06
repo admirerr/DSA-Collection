@@ -10,9 +10,9 @@ class Node{
         this.next=null;
     }
 };
-public class lengthodlinkedlist {
+public class LengthOfLinkedList {
     // Function to calculate the length of a linked list
-    private static int lengthofaLL(Node head){
+    private static int lengthOfLL(Node head){
         int cnt=0;
         Node temp=head;
         // Traverse the linked list and count nodes

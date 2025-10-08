@@ -1,6 +1,6 @@
-#  C++ Folder Guide — DSA Collection
+# C++ Folder Guide — DSA Collection
 
-Welcome to the **C++** section of the DSA-Collection repository!  
+Welcome to the C++ section of the DSA-Collection repository!  
 This guide explains how to compile and execute C++ files, follow naming conventions, and contribute effectively.
 
 ---
@@ -8,6 +8,7 @@ This guide explains how to compile and execute C++ files, follow naming conventi
 ##  Folder Structure
 
 Each folder below represents a category of data structures or algorithms:
+
 
 ```text
 CPP/
@@ -27,6 +28,7 @@ CPP/
 ├── tree-algorithm/
 └── tree/
 
+````
 
 Each folder contains one or more `.cpp` files implementing specific problems.
 
@@ -39,28 +41,36 @@ You can check your version by running:
 
 ```bash
 g++ --version
+````
 
-Steps:
+### 1️⃣ Navigate to the directory of your desired file
 
-1️ Navigate to the directory of your desired file
-
+```bash
 cd CPP/sorting
+```
 
+### 2️⃣ Compile the file
 
-2️ Compile the file
-
+```bash
 g++ filename.cpp -o output
+```
 
+For modern C++ features (e.g., C++17):
 
-For modern C++ features, use:
-
+```bash
 g++ -std=c++17 filename.cpp -o output
+```
 
+### 3️⃣ Run the program
 
-3️ Run the program
-
+```bash
 ./output
+```
 
-Example:
+###  Example
+
+```bash
 g++ quick_sort.cpp -o quick_sort
 ./quick_sort
+```
+

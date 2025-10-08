@@ -71,6 +71,9 @@ g++ -std=c++17 filename.cpp -o output
 
 ```bash
 g++ quick_sort.cpp -o quick_sort
-./quick_sort
-```
+
+(your local version of the README)
+
+(remote version from GitHub)
+
 

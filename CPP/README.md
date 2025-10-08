@@ -63,4 +63,5 @@ g++ -std=c++17 filename.cpp -o output
 
 Example:
 g++ quick_sort.cpp -o quick_sort
+
 ./quick_sort

@@ -9,6 +9,7 @@ This guide explains how to compile and execute C++ files, follow naming conventi
 
 Each folder below represents a category of data structures or algorithms:
 
+```text
 CPP/
 ├── Array/
 ├── Backtracking/

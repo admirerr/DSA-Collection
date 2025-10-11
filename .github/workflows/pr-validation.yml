@@ -97,7 +97,7 @@ jobs:
         done
 
         if [ ${#missing_docs[@]} -gt 0 ]; then
-          echo "⚠️ Found documentation issues: "
+          echo "⚠️ Found documentation issues:"
           printf '%s\n' "${missing_docs[@]}"
           echo ""
           echo "💡 Please add:"

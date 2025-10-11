@@ -1,156 +1,87 @@
-name: 🏆 Update Contributors
+name: Update Contributors
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
-  pull_request:
-    types: [closed]
-    branches: [main]
-  workflow_dispatch: # Allow manual trigger
+    branches:
+      - main
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
-  update-contributors:
+  update:
     runs-on: ubuntu-latest
-    # Only run on push to main or when PR is merged (not just closed)
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
-
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 🔍 Get contributor stats
-      id: contributors
-      run: |
-        echo "📊 Fetching contributor statistics..."
+      - name: Update Contributors in HALL_OF_FAME.md and README.md
+        run: |
+          # Fetch contributors from GitHub
+          NEW_CONTRIBUTORS=$(curl -s "https://api.github.com/repos/admirerr/DSA-Collection/contributors?per_page=100" \
+            | jq -r '.[] | select(.type != "Bot") | [.login, .avatar_url, .html_url, .contributions] | @tsv')
 
-        # Get contributors with commit counts, excluding GitHub Actions users
-        contributors=$(curl -s "https://api.github.com/repos/${{ github.repository }}/contributors?per_page=100" | \
-          jq -r '.[] | select(.login != "github-actions[bot]" and .login != "actions-user" and .type != "Bot") | "\(.login) \(.contributions)"')
+          # Extract existing contributors from HALL_OF_FAME.md
+          EXISTING_CONTRIBUTORS=$(awk -F'\t' '/<div align=/{print $0}' HALL_OF_FAME.md || true)
 
-        echo "Contributors found (excluding bots):"
-        echo "$contributors"
+          # Merge, remove duplicates, and sort by contributions descending
+          ALL_CONTRIBUTORS=$(echo -e "$NEW_CONTRIBUTORS" | awk '!seen[$0]++' | sort -k4,4nr)
 
-        # Count total contributors (excluding bots)
-        total_contributors=$(echo "$contributors" | grep -v '^$' | wc -l)
-        echo "total_contributors=$total_contributors" >> $GITHUB_OUTPUT
+          # Build Hall of Fame table (full)
+          TABLE=$(echo "$ALL_CONTRIBUTORS" | awk -F'\t' '{printf "| <div align=\"center\"><img src=\"%s\" width=\"50\" height=\"50\"/><br>[%s](%s)</div> | %s |\n", $2, $1, $3, $4}')
 
-        # Get top contributors
-        top_contributors=$(echo "$contributors" | head -10)
-        echo "top_contributors<<EOF" >> $GITHUB_OUTPUT
-        echo "$top_contributors" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+          # Build avatars row for README (full)
+          AVATARS=$(echo "$ALL_CONTRIBUTORS" | awk -F'\t' '{printf "[<img src=\"%s\" width=\"50\" height=\"50\" alt=\"%s\"/>](%s) ", $2, $1, $3}')
 
-    - name: 📊 Update repository stats
-      run: |
-        echo "📊 Updating repository statistics..."
 
-        # Update stats in README.md
-        if [ -f "README.md" ]; then
-          # Update contributor count in README
-          sed -i "s/🎯 \*\*[0-9]*+ Contributors\*\*/🎯 **${{ steps.contributors.outputs.total_contributors }}+ Contributors**/g" README.md
+          # ---- Update Hall of Fame ----
+          awk -v table="$TABLE" '
+            /Contributor \| Contributions/ {
+              print;
+              print "|-------------|---------------|";
+              print table;
+              in_block=1; next;
+            }
+            in_block && /^\|/ {next}
+            {print}
+          ' HALL_OF_FAME.md > temp && mv temp HALL_OF_FAME.md
 
-          echo "✅ Updated README.md with new contributor count"
-        fi
+          # ---- Update README ----
+          awk -v avatars="$AVATARS" '
+            /<!-- CONTRIBUTORS START -->/ {
+              print;
+              print avatars;
+              in_block=1; next;
+            }
+            in_block && /<!-- CONTRIBUTORS END -->/ {print; in_block=0; next}
+            in_block {next}
+            {print}
+          ' README.md > temp && mv temp README.md
 
-        # Update stats in HALL_OF_FAME.md
-        if [ -f "HALL_OF_FAME.md" ]; then
-          # Update contributor count in Hall of Fame
-          sed -i "s/\*\*Total 2025 Contributors: [0-9]*+ Amazing Developers!\*\*/\*\*Total 2025 Contributors: ${{ steps.contributors.outputs.total_contributors }}+ Amazing Developers!\*\*/g" HALL_OF_FAME.md
-          sed -i "s/We extend our heartfelt gratitude to all \*\*[0-9]*+ contributors\*\*/We extend our heartfelt gratitude to all **${{ steps.contributors.outputs.total_contributors }}+ contributors**/g" HALL_OF_FAME.md
-          sed -i "s/| 👥 \*\*Total Contributors\*\* | [0-9]*+ Amazing Developers |/| 👥 **Total Contributors** | ${{ steps.contributors.outputs.total_contributors }}+ Amazing Developers |/g" HALL_OF_FAME.md
+      - name: Update Implementation Counts
+        run: |
+          # Count implementations dynamically
+          PY_COUNT=$(find . -type f -name "*.py" | wc -l)
+          CPP_COUNT=$(find . -type f -name "*.cpp" | wc -l)
+          JAVA_COUNT=$(find . -type f -name "*.java" | wc -l)
+          
+          # Total implementations
+          TOTAL_COUNT=$((PY_COUNT + CPP_COUNT + JAVA_COUNT))
+          
+          # Update counts in HALL_OF_FAME.md
+          sed -i "s/| 🎯 \*\*Total Implementations\*\* | [0-9]\+ |/| 🎯 **Total Implementations** | $TOTAL_COUNT |/" HALL_OF_FAME.md
+          sed -i "/### Python/{n;s/- Implementations: [0-9]\+/- Implementations: $PY_COUNT/}" HALL_OF_FAME.md
+          sed -i "/### C++/{n;s/- Implementations: [0-9]\+/- Implementations: $CPP_COUNT/}" HALL_OF_FAME.md
+          sed -i "/### Java/{n;s/- Implementations: [0-9]\+/- Implementations: $JAVA_COUNT/}" HALL_OF_FAME.md
 
-          echo "✅ Updated HALL_OF_FAME.md with new contributor count"
-        fi
 
-    - name: 📈 Update language statistics
-      run: |
-        echo "📈 Updating language statistics..."
-
-        # Count files by language
-        cpp_files=$(find CPP/ -name "*.cpp" 2>/dev/null | wc -l || echo 0)
-        java_files=$(find Java/ -name "*.java" 2>/dev/null | wc -l || echo 0)
-        python_files=$(find Python/ -name "*.py" 2>/dev/null | wc -l || echo 0)
-
-        total_implementations=$((cpp_files + java_files + python_files))
-
-        echo "📊 Language Statistics:"
-        echo "C++: $cpp_files files"
-        echo "Java: $java_files files"
-        echo "Python: $python_files files"
-        echo "Total: $total_implementations implementations"
-
-        # Count supported languages
-        supported_languages=3 # Base languages: C++, Java, Python
-
-        echo "Supported languages: $supported_languages"
-
-        # Update README stats
-        if [ -f "README.md" ]; then
-          sed -i "s/💻 \*\*[0-9]*+ Languages\*\*/💻 **${supported_languages}+ Languages**/g" README.md
-        fi
-
-    - name: 📅 Update last modified date
-      run: |
-        echo "📅 Updating last modified date..."
-        current_date=$(date +"%B %Y")
-
-        if [ -f "HALL_OF_FAME.md" ]; then
-          sed -i "s/\*Last updated: .* [0-9]*\*/\*Last updated: $current_date\*/g" HALL_OF_FAME.md
-          echo "✅ Updated last modified date in HALL_OF_FAME.md"
-        fi
-
-    - name: 🔍 Check for changes
-      id: changes
-      run: |
-        if git diff --quiet; then
-          echo "No changes to commit"
-          echo "has_changes=false" >> $GITHUB_OUTPUT
-        else
-          echo "Changes detected"
-          echo "has_changes=true" >> $GITHUB_OUTPUT
-          echo "Changed files:"
-          git diff --name-only
-        fi
-
-    - name: 💾 Commit and push changes
-      if: steps.changes.outputs.has_changes == 'true'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-
-        git add README.md HALL_OF_FAME.md
-
-        git commit -m "🏆 Auto-update contributor statistics
-
-        - Updated contributor count: ${{ steps.contributors.outputs.total_contributors }}+ amazing developers
-        - Refreshed repository statistics
-        - Updated last modified date
-
-        🤖 Generated by GitHub Actions"
-
-        git push
-
-    - name: 📋 Generate summary
-      run: |
-        echo "🏆 Contributors Update Summary"
-        echo "=============================="
-        echo ""
-        echo "📊 Statistics:"
-        echo "  👥 Total Contributors: ${{ steps.contributors.outputs.total_contributors }}"
-        echo "  🔥 Repository Status: Active"
-        echo "  📅 Last Updated: $(date)"
-        echo ""
-        echo "🎉 Contributor statistics updated successfully!"
-
-        if [ "${{ steps.changes.outputs.has_changes }}" == "true" ]; then
-          echo "✅ Changes committed and pushed"
-        else
-          echo "ℹ️ No changes needed"
-        fi
+      - name: Commit changes
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add HALL_OF_FAME.md README.md
+          git commit -m "Update contributors and implementations" || echo "No changes to commit"
+          git push

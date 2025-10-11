@@ -27,7 +27,7 @@ void primsAlgorithm(const std::vector<std::vector<int>>& graph, int n) {
         inMST[u] = true;
 
         for (int v = 0; v < n; v++) {
-            if (graph[u][v] && !inMST[v] && graph[u][v] < key[v]) {
+            if (graph[u][v] != 0 && !inMST[v] && graph[u][v] < key[v]) {
                 parent[v] = u;
                 key[v] = graph[u][v];
             }
@@ -35,20 +35,25 @@ void primsAlgorithm(const std::vector<std::vector<int>>& graph, int n) {
     }
 
     for (int i = 1; i < n; i++) {
-        if (parent[i] != -1)
+        if (parent[i] != -1) {
             std::cout << parent[i] << " " << i << " " << graph[i][parent[i]] << "\n";
+        }
     }
 }
 
 int main() {
     int n;
-    std::cin >> n;
-    std::vector<std::vector<int>> graph(n, std::vector<int>(n));
+    if (!(std::cin >> n)) {
+        return 0; // Handle invalid input gracefully
+    }
+
+    std::vector<std::vector<int>> graph(n, std::vector<int>(n, 0));
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             std::cin >> graph[i][j];
         }
     }
+
     primsAlgorithm(graph, n);
     return 0;
 }

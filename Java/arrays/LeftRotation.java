@@ -1,6 +1,6 @@
 import java.util.Arrays;
 
-public class LeftRotationExample {
+public class LeftRotation {
     public static void main(String[] args) {
         int[] arr = {1, 2, 3, 4, 5};
         int rotations = 2; // Number of positions to rotate left

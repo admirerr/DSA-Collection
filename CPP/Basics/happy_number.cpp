@@ -1,4 +1,5 @@
-// happy_number.cpp
+// Problem: Happy Number
+// Language: C++
 // Problem: Happy Number (IEEEXtreme / LeetCode 202 style)
 // Description:
 //   A number is "happy" if repeatedly replacing the number by the sum of the

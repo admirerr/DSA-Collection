@@ -4,10 +4,6 @@
 using namespace std;
 // Function to compute the HCF, to further use in finding the LCM
 
-int Find_LCM(int a, int b){
-    //Using the formula lcm=a*b/hcf(a,b),
-    return a*b/Find_HCF(a,b);
-}
 int Find_HCF(int a, int b){
     while(a>0 && b>0){
         // If a > b then a%b
@@ -26,6 +22,10 @@ int Find_HCF(int a, int b){
     else{
         return a;
     }
+}
+int Find_LCM(int a, int b){
+    //Using the formula lcm=a*b/hcf(a,b),
+    return a*b/Find_HCF(a,b);
 }
 
 int main(){

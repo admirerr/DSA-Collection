@@ -76,7 +76,7 @@ We are incredibly grateful to all our amazing contributors who make this reposit
 
 
 ### Python
-- Implementations: 41
+- Implementations: 42
 
 ### C++
 - Implementations: 106
